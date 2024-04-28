@@ -12,7 +12,6 @@ import org.jetbrains.plugins.scala.lang.psi.api.base.types.ScTypeElement
 import org.jetbrains.plugins.scala.lang.psi.api.expr.ScExpression
 import org.jetbrains.plugins.scala.lang.psi.impl.ScalaPsiElementFactory
 import org.jetbrains.plugins.scala.lang.psi.types.{ScType, TypePresentationContext}
-import org.jetbrains.plugins.scala.lang.psi.types.api.TypePresentation
 import org.jetbrains.plugins.scala.lang.psi.types.result._
 import org.jetbrains.plugins.scala.project.{ProjectContext, ScalaFeatures}
 import org.jetbrains.plugins.scala.util.TestUtils
@@ -85,7 +84,7 @@ trait TypeInferenceDoTest extends TestCase with FailableTest with ScalaSdkOwner 
     val expectedType =
       ScalaPsiElementFactory.createTypeElementFromText(
         expectedTypeText,
-        ScalaPsiElementFactory.createElementFromText(ctx.prefix, ScalaFeatures.default)(expr.projectContext),
+        ScalaPsiElementFactory.createElementFromText(ctx.prefix, ScalaFeatures.onlyByVersion(version))(expr.projectContext),
         null
       ).`type`()
 

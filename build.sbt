@@ -19,7 +19,7 @@ inThisBuild(
     pgpSecretRing := file("/tmp/secret.asc"),
 
     intellijPluginName := "zio-direct-intellij",
-    intellijBuild := "223",
+    intellijBuild := "241.14494.240",
     jbrInfo := AutoJbr(explicitPlatform = Some(JbrPlatform.osx_aarch64)),
     organization := "dev.zio"
   ) ++ {
@@ -32,7 +32,7 @@ inThisBuild(
   }
 )
 
-lazy val scala213           = "2.13.10"
+lazy val scala213           = "2.13.13"
 
 
 

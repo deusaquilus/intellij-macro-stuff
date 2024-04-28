@@ -1,5 +1,4 @@
 import org.jetbrains.plugins.scala.DependencyManagerBase.RichStr
-import org.jetbrains.plugins.scala.ScalaVersion
 import org.jetbrains.plugins.scala.base.libraryLoaders.{IvyManagedLoader, LibraryLoader}
 import org.jetbrains.plugins.scala.components.libextensions.LibraryExtensionsManager
 import org.jetbrains.plugins.scala.lang.macros.evaluator.ScalaMacroTypeable
@@ -8,13 +7,10 @@ import org.junit.Assert.assertTrue
 
 import java.io.File
 
-class ZioDirectMacroSupportTest extends TypeInferenceTestBase {
-
-  override protected def supportedIn(version: ScalaVersion) =
-    version == ScalaVersion.Latest.Scala_2_13
+abstract class BaseZioDirectMacroSupportTest extends TypeInferenceTestBase {
 
   override protected def librariesLoaders: Seq[LibraryLoader] =
-    super.librariesLoaders :+ IvyManagedLoader(("dev.zio" %% "zio-direct" % "1.0.0-RC3").transitive())
+    super.librariesLoaders :+ IvyManagedLoader(("dev.zio" %% "zio-direct" % "1.0.0-RC7").transitive())
 
   override protected def setUp(): Unit = {
     super.setUp()
@@ -41,7 +37,7 @@ class ZioDirectMacroSupportTest extends TypeInferenceTestBase {
     }
   }
 
-  implicit val wrappingContext = WrappingContext(
+  implicit val wrappingContext: WrappingContext = WrappingContext(
     """|import zio._
        |import zio.direct._
        |import java.sql.SQLException
@@ -69,21 +65,33 @@ class ZioDirectMacroSupportTest extends TypeInferenceTestBase {
          |  a
          |}
          |""".stripMargin,
-      "ZIO[ConfigA,Throwable,String]"
+      "ZIO[ConfigA,java.lang.Throwable,java.lang.String]"
+    )
+  }
+
+  def testAliases(): Unit = {
+    doTest(
+      s"""
+         |type StringAlias = java.lang.String
+         |
+         |def attemptString: ZIO[Any, Nothing, StringAlias] = ZIO.succeed("foo")
+         |
+         |defer {
+         |  attemptString.run
+         |}
+         |""".stripMargin,
+      "ZIO[Any,Nothing,StringAlias]"
     )
   }
 
   def test_defer_info(): Unit = {
-    doTest("""defer.info { val a = ZIO.service[ConfigA].run.value; a }""", "ZIO[ConfigA, Nothing, String")
-  }
-  def test_defer_tpe(): Unit = {
-    doTest("""defer.tpe { val a = ZIO.service[ConfigA].run.value; a }""", "ZIO[ConfigA, Nothing, String")
+    doTest("""defer.info { val a = ZIO.service[ConfigA].run.value; a }""", "ZIO[ConfigA, Nothing, java.lang.String")
   }
   def test_defer_verbose(): Unit = {
-    doTest("""defer.verbose { val a = ZIO.service[ConfigA].run.value; a }""", "ZIO[ConfigA, Nothing, String")
+    doTest("""defer.verbose { val a = ZIO.service[ConfigA].run.value; a }""", "ZIO[ConfigA, Nothing, java.lang.String")
   }
   def test_defer_verboseTree(): Unit = {
-    doTest("""defer.verboseTree { val a = ZIO.service[ConfigA].run.value; a }""", "ZIO[ConfigA, Nothing, String")
+    doTest("""defer.verboseTree { val a = ZIO.service[ConfigA].run.value; a }""", "ZIO[ConfigA, Nothing, java.lang.String")
   }
 
   def testConfigAndErrorComposition(): Unit = {
@@ -107,7 +115,7 @@ class ZioDirectMacroSupportTest extends TypeInferenceTestBase {
          |  a + d
          |}
          |""".stripMargin,
-      "ZIO[ConfigA with ConfigB with ConfigC with ConfigD, Exception, String]"
+      "ZIO[ConfigA with ConfigB with ConfigC with ConfigD, java.lang.Exception, java.lang.String]"
     )
   }
 
@@ -125,7 +133,7 @@ class ZioDirectMacroSupportTest extends TypeInferenceTestBase {
          |  a + "bar"
          |}
          |""".stripMargin,
-      "ZIO[ConfigA with ConfigB,Exception,String]"
+      "ZIO[ConfigA with ConfigB,java.lang.Exception,java.lang.String]"
     )
   }
 
@@ -135,7 +143,7 @@ class ZioDirectMacroSupportTest extends TypeInferenceTestBase {
          |val b = ZIO.service[ConfigB] *> ZIO.fail(new IllegalArgumentException("foo")) *> ZIO.succeed(123)
          |defer { (a.run, b.run) }
          |""".stripMargin,
-      "ZIO[ConfigA with ConfigB,Exception,(String, Int)]"
+      "ZIO[ConfigA with ConfigB,java.lang.Exception,(java.lang.String, Int)]"
     )
   }
 
@@ -160,7 +168,7 @@ class ZioDirectMacroSupportTest extends TypeInferenceTestBase {
          |  bc
          |}
          |""".stripMargin,
-      "ZIO[ConfigA with ConfigB with ConfigC with ConfigD with ConfigE, Exception, (String, Int)]"
+      "ZIO[ConfigA with ConfigB with ConfigC with ConfigD with ConfigE, java.lang.Exception, (java.lang.String, Int)]"
     )
   }
 }
