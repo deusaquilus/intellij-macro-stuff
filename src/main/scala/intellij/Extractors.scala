@@ -1,15 +1,13 @@
 package intellij
 
-import org.jetbrains.plugins.scala.lang.psi.api.expr.{ScExpression, ScMethodCall, ScReferenceExpression}
+import org.jetbrains.plugins.scala.codeInspection.collections._
+import org.jetbrains.plugins.scala.extensions.PsiClassExt
+import org.jetbrains.plugins.scala.lang.psi.api.expr.{ScExpression, ScReferenceExpression}
 import org.jetbrains.plugins.scala.lang.psi.api.statements.ScFunctionDefinition
 import org.jetbrains.plugins.scala.lang.psi.api.toplevel.ScNamedElement
 import org.jetbrains.plugins.scala.lang.psi.api.toplevel.typedef.{ScObject, ScTemplateDefinition, ScTrait}
 import org.jetbrains.plugins.scala.lang.psi.types.ScType
 import org.jetbrains.plugins.scala.lang.refactoring.util.ScalaNamesUtil
-import org.jetbrains.plugins.scala.extensions.PsiClassExt
-import org.jetbrains.plugins.scala.codeInspection.collections.{isOfClassFrom, _}
-
-import scala.reflect.ClassTag
 
 object Extractors {
   object Internal {
@@ -50,7 +48,9 @@ object Extractors {
           case f: ScFunctionDefinition =>
             // If it's an extension method an it's in a top-level package, it won't have a containingClass
             // so need to get the qualifier of the extensionMethodOwner
-            Option(f.containingClass).collect { case o: ScObject => o.qualifiedName }.filter(types.contains)
+            Option(f.containingClass).collect {
+              case o @ (_: ScObject | _: ScTrait)=> o.qualifiedName
+            }.filter(types.contains)
           case _ => None
         }
     }
@@ -125,7 +125,7 @@ object Extractors {
     final class DirectExtensionMemberReference(refName: String) extends ExtensionMemberReference(`zio.direct.<extension-method>`, refName)
 
     object `zio.direct.defer.<method>` extends StaticMemberReferenceExtractor {
-      override val types: Set[String] = Set("zio.direct.defer")
+      override val types: Set[String] = Set("zio.direct.defer", "zio.direct.deferCall")
     }
     object `zio.direct.<extension-method>` extends ExtensionMemberReferenceExtractor {
       override val types: Set[String] = Set("zio.direct")

@@ -8,7 +8,6 @@ import org.jetbrains.plugins.scala.lang.psi.api.expr.ScExpression
 import org.jetbrains.plugins.scala.lang.psi.api.statements.ScFunction
 import org.jetbrains.plugins.scala.lang.psi.impl.ScalaPsiElementFactory
 import org.jetbrains.plugins.scala.lang.psi.types.ScType
-import org.jetbrains.plugins.scala.lang.psi.types.api.designator.ScDesignatorType
 import org.jetbrains.plugins.scala.lang.psi.types.api.{Any, Nothing, ParameterizedType}
 
 import scala.collection.mutable.ArrayBuffer
@@ -211,7 +210,12 @@ class ZioDirectMacroSupport extends ScalaMacroTypeable {
       MacroImpl("tpe", "zio.direct.defer"),
       MacroImpl("info", "zio.direct.defer"),
       MacroImpl("verbose", "zio.direct.defer"),
-      MacroImpl("verboseTree", "zio.direct.defer")
+      MacroImpl("verboseTree", "zio.direct.defer"),
+      // Scala 3 below
+      MacroImpl("apply", "zio.direct.deferCall"),
+      MacroImpl("info", "zio.direct.deferCall"),
+      MacroImpl("verbose", "zio.direct.deferCall"),
+      MacroImpl("verboseTree", "zio.direct.deferCall")
     )
   }
 }
